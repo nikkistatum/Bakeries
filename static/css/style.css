@@ -1,0 +1,26 @@
+body { font: 12px Arial;}
+
+For our line paths, we’ll give them a stroke-width of 2 px and turn off the fill, which is on by default.
+
+path {
+  stroke-width: 2;
+  fill: none;
+}
+
+For the axis, we’ll turn off the fill too and set a stroke-width of 1 px.
+
+.axis path, .axis line {
+  fill: none;
+  stroke: grey;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+We’ll fill in the area between the low and high values with a light blue colour:
+
+.area {
+  fill: #F0F8FF;
+  stroke-width: 0;
+}
+
+
