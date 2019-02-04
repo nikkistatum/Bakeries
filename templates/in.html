@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style> 
+body {
+	background: #fff;
+	color: #333;
+	font: 12px/20px 'Helvetica Neue', Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+h2 {
+	font-size: 18px;
+	font-weight: normal;
+	line-height: 20px;
+	margin: 0 0 20px 0;
+	padding: 0;
+	text-align: center;
+}
+h4 {
+	color: #545454;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 20px;
+	margin: 0 0 20px 0;
+	padding: 0;
+	text-align: center;
+}
+a {
+	color: #333;
+}
+
+/* Table */
+#data-table {
+	border: none; /* Turn off all borders */
+	border-top: 1px solid #ccc;
+	width: 60%;
+}
+#data-table th, 
+#data-table td {
+	border: none; /* Turn off all borders */
+	border-bottom: 1px solid #ccc;
+	margin: 0;
+	padding: 10px;
+	text-align: left;	
+}
+
+/* Toggle */
+.toggles {
+	background: #ebebeb;	
+	color: #545454;
+	height: 20px;
+	padding: 15px;
+}
+.toggles p {
+	margin: 0;
+}
+.toggles a {
+	background: #222;
+	border-radius: 3px;	
+	color: #fff;
+	display: block;
+	float: left;
+	margin: 0 10px 0 0;
+	padding: 0 6px;
+	text-decoration: none;
+}
+.toggles a:hover {
+	background: #666;
+}
+#reset-graph-button {
+	float:right;
+}
+
+/* Graph */
+/* Containers */
+#wrapper {
+	margin: 25px auto;
+  width: 60%;
+}
+#figure {
+	height: 380px;
+	position: relative;
+}
+#figure ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.graph {
+	height: 283px;
+	position: relative;
+}
+
+/* Legend */
+.legend {
+	background: #f0f0f0;
+	border-radius: 4px;
+	bottom: 0;
+	position: absolute;
+	text-align: left;
+	width: 540px;	
+}
+.legend li {
+	display: block;
+	float: left;
+	height: 20px;
+	margin: 0;
+	padding: 10px 30px;
+	width: 120px;
+}
+.legend span.icon {
+	background-position: 50% 0;
+	border-radius: 2px;
+	display: block;
+	float: left;
+	height: 16px;
+	margin: 2px 10px 0 0;
+	width: 16px;	
+}
+
+/* X-Axis */
+.x-axis {
+	bottom: 0;
+	color: #555;
+	position: absolute;
+	text-align: center;
+	width: 100%;
+}
+.x-axis li {
+	float: left;
+	margin: 0 15px;
+	padding: 5px 0;
+	width: 10%;	
+}
+.x-axis li span {
+  float: left;
+}
+/* Y-Axis */
+.y-axis {
+	color: #555;
+	position: absolute;
+	text-align: right;
+	width: 100%;
+}
+.y-axis li {
+	border-top: 1px solid #ccc;
+	display: block;
+	height: 62px;
+	width: 100%;
+}
+.y-axis li span {
+	display: block;
+	margin: -10px 0 0 -60px;
+	padding: 0 10px;
+	width: 40px;
+}
+
+/* Graph Bars */
+.bars {
+	height: 253px;
+	position: absolute;
+	width: 100%;
+	z-index: 10;
+}
+.bar-group {
+	float: left;
+	height: 100%;
+	margin: 0 15px;
+	position: relative;
+	width: 10%;
+}
+.bar {
+	border-radius: 3px 3px 0 0;
+	bottom: 0;
+	cursor: pointer;	
+	height: 0;
+	position: absolute;
+	text-align: center;
+	width: 24px;
+}
+.bar span {
+	background: #fefefe;
+	border-radius: 3px;
+	left: -8px;
+	display: none;
+	margin: 0;
+	position: relative;
+	text-shadow: rgba(255, 255, 255, 0.8) 0 1px 0;
+	width: 40px;
+	z-index: 20;
+	
+	-webkit-box-shadow: rgba(0, 0, 0, 0.6) 0 1px 4px;
+	box-shadow: rgba(0, 0, 0, 0.6) 0 1px 4px;
+}
+.bar:hover span {
+	display: block;
+	margin-top: -25px;
+}
+
+#data-table.js {
+	display: none;
+}
+.bar span {
+	background: #fefefe;
+}
+.fig0 {
+	background: #a22;
+}
+  </style>
+</head>
+<body>
+<div id='graphDiv'></div>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var graphData = {{ data.chart_data | safe }}
+var margin = {top: 20, right: 20, bottom: 70, left: 60},
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var y = d3.scale.ordinal().rangeRoundBands([height,0]);
+
+var x = d3.scale.linear().range([0, width]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .ticks(12);
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+   // define function
+    function draw(data) {
+//var topValues = data.sort((a,b) => a.value>b.value).slice(5,1);
+var array1 = data.sort(function(l, r) { return r.value - l.value; }).slice(0, 5);
+var topValues = array1.reverse(); 
+       //sort bars based on value
+       // data = data.sort(function (a, b) {
+       //    return d3.ascending(a.value, b.value);
+
+//var topValues  = data.sort((a, b) => Number(b.date) - Number(a.date)).slice(5,0);
+console.log(topValues)
+
+    //data.forEach(function(d) {
+    topValues.forEach(function(d) {
+        d.value = +d.value;
+    });
+
+  y.domain(topValues.map(function(d) { return d.date; }));
+  x.domain([0, d3.max(topValues, function(d) { return d.value; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", "-.55em")
+      .attr("transform", "rotate(-90)" );
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
+svg.selectAll("bar")
+      .data(topValues)
+      .enter().append("rect")
+      //.style("fill", "steelblue")
+      .attr("x", function(d) { return x(d.value); })
+      .attr("width", function(d) { return width - x(d.value); })
+      .attr("y", function(d) { return y(d.date); })
+      .attr("height", y.rangeBand())
+      .attr("title",function(d) { return y(d.value); });
+  svg.selectAll("bar")          
+      .data(topValues)
+      .enter()
+      .append("text")
+      .attr("class","label")
+      .attr("y", (function(d) { return y(d.date) + y.rangeBand()/2 ; }  ))
+      .attr("x", function(d) { return x(d.value) + 1; })
+      .attr("dx", ".75em")
+      .text(function(d) { return d.date; });  
+    };
+
+draw(graphData);
+
+</script>
+</body>
+</html>
+

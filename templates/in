@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style> /* set the CSS */
+    body { font: 12px Arial;}
+    path {
+      stroke-width: 2;
+      fill: none;
+    }
+    .axis path, .axis line {
+      fill: none;
+      stroke: grey;
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+    .area {
+      fill: #F0F8FF;
+      stroke-width: 0;
+    }
+  </style>
+</head>
+<body>
+<div id='graphDiv'></div>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var graphData = {{ data.chart_data | safe }}
+var margin = {top: 20, right: 20, bottom: 70, left: 60},
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var y = d3.scale.ordinal().rangeRoundBands([height,0]);
+
+var x = d3.scale.linear().range([0, width]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .ticks(12);
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+   // define function
+    function draw(data) {
+
+    data.forEach(function(d) {
+        d.value = +d.value;
+    });
+
+  y.domain(data.map(function(d) { return d.date; }));
+  x.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", "-.55em")
+      .attr("transform", "rotate(-90)" );
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
+svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", function(d) { return x(d.value); })
+      .attr("width", function(d) { return width - x(d.value); })
+      .attr("y", function(d) { return y(d.date); })
+      .attr("height", y.rangeBand())
+      .attr("title",function(d) { return y(d.value); });
+  svg.selectAll("bar")          
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("class","label")
+      .attr("y", (function(d) { return y(d.date) + y.rangeBand()/2 ; }  ))
+      .attr("x", function(d) { return x(d.value) + 1; })
+      .attr("dx", ".75em")
+      .text(function(d) { return d.date; });  
+    };
+
+draw(graphData);
+
+</script>
+</body>
+</html>
+
